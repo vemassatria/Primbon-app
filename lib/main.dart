@@ -4,9 +4,11 @@ import 'screens/onboarding_screen.dart';
 import 'screens/home_screen.dart';
 import 'utils/theme.dart';
 import 'models/user_model.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('id_ID', null);
   SharedPreferences prefs = await SharedPreferences.getInstance();
   bool isFirstTime = prefs.getBool('isFirstTime') ?? true;
   
@@ -29,6 +31,11 @@ class MyApp extends StatelessWidget {
   const MyApp({Key? key, required this.isFirstTime}) : super(key: key);
 
   @override
+/*************  ✨ Windsurf Command ⭐  *************/
+/// Builds the main application widget.
+/// 
+
+/*******  677f38c1-910b-4b4b-a849-d049aa4c819d  *******/
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Pustaka Jawa',

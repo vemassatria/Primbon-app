@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../utils/theme.dart';
+import '../utils/weton_calculator.dart'; // <--- TAMBAHKAN IMPORT INI
+import '../models/weton_model.dart';   // <--- TAMBAHKAN IMPORT INI (jika ingin akses modelnya langsung)
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({Key? key}) : super(key: key);
@@ -14,25 +16,34 @@ class _CalendarScreenState extends State<CalendarScreen> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  
-  final Map<DateTime, List<String>> _events = {};
-  
+
+  // final Map<DateTime, List<String>> _events = {}; // Komentari atau hapus jika tidak digunakan
+  Map<DateTime, List<dynamic>> _events = {}; // Ubah tipe jika ingin menyimpan WetonModel atau objek lain
+
   @override
   void initState() {
     super.initState();
     _selectedDay = _focusedDay;
-    _loadEvents();
+    _loadEventsForMonth(_focusedDay); // Panggil untuk bulan awal
   }
-  
-  void _loadEvents() {
-    // Contoh events (hari baik)
-    _events[DateTime.now().add(Duration(days: 3))] = ['Pernikahan', 'Memulai Bisnis'];
-    _events[DateTime.now().add(Duration(days: 5))] = ['Pindah Rumah'];
-    _events[DateTime.now().add(Duration(days: 7))] = ['Perjalanan Jauh', 'Memulai Proyek'];
+
+  // Ubah _loadEvents menjadi lebih dinamis atau sesuai kebutuhan
+  // Fungsi ini sekarang hanya contoh, idealnya Anda punya sumber data hari baik yang sebenarnya.
+  void _loadEventsForMonth(DateTime month) {
+    // Simulasi memuat event (hari baik) untuk bulan tertentu
+    // Dalam aplikasi nyata, ini mungkin akan mengambil data dari database atau API
+    // atau berdasarkan perhitungan primbon yang lebih kompleks.
+    // Untuk sekarang, kita biarkan kosong atau dengan contoh statis jika diperlukan.
+    // Contoh:
+    // _events[DateTime(month.year, month.month, 3)] = ['Pernikahan'];
+    // _events[DateTime(month.year, month.month, 5)] = ['Pindah Rumah'];
+    setState(() {}); // Refresh UI jika ada perubahan event
   }
-  
-  List<String> _getEventsForDay(DateTime day) {
-    return _events[DateTime(day.year, day.month, day.day)] ?? [];
+
+  List<dynamic> _getEventsForDay(DateTime day) {
+    // Normalisasi hari untuk menghindari masalah dengan jam, menit, detik
+    DateTime normalizedDay = DateTime(day.year, day.month, day.day);
+    return _events[normalizedDay] ?? [];
   }
 
   @override
@@ -42,7 +53,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         title: const Text('Kalender Jawa'),
         centerTitle: true,
       ),
-      body: Container(
+      body: Container( // Hapus child: dari Container ini jika tidak diperlukan
         child: Column(
           children: [
             Card(
@@ -78,6 +89,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   },
                   onPageChanged: (focusedDay) {
                     _focusedDay = focusedDay;
+                    // Panggil _loadEventsForMonth jika Anda ingin memuat event per bulan
+                    _loadEventsForMonth(focusedDay);
                   },
                   calendarStyle: CalendarStyle(
                     markerDecoration: BoxDecoration(
@@ -104,7 +117,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 ),
               ),
             ),
-            
+
             // Event List
             Expanded(
               child: Padding(
@@ -119,21 +132,22 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     const SizedBox(height: 8),
                     if (_selectedDay != null) ...[
                       Text(
-                        DateFormat('EEEE, d MMMM yyyy').format(_selectedDay!),
+                        DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(_selectedDay!), // Tambahkan locale 'id_ID'
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                       Text(
-                        _getWetonForDate(_selectedDay!),
+                        _getWetonForDate(_selectedDay!), // <--- INI AKAN DIPERBAIKI
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey[700],
+                          fontWeight: FontWeight.bold, // Tambahkan bold agar lebih terlihat
                         ),
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Events for selected day
                       Text(
                         'Hari Baik Untuk:',
@@ -143,12 +157,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      
+
                       Expanded(
                         child: _getEventsForDay(_selectedDay!).isNotEmpty
                             ? ListView.builder(
                                 itemCount: _getEventsForDay(_selectedDay!).length,
                                 itemBuilder: (context, index) {
+                                  final event = _getEventsForDay(_selectedDay!)[index];
+                                  // Asumsikan event adalah String, sesuaikan jika tipe datanya beda
                                   return Card(
                                     margin: const EdgeInsets.only(bottom: 8),
                                     child: ListTile(
@@ -156,7 +172,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                         Icons.event_available,
                                         color: AppColors.primary,
                                       ),
-                                      title: Text(_getEventsForDay(_selectedDay!)[index]),
+                                      title: Text(event is String ? event : event.toString()), // Tampilkan event
                                       subtitle: Text('Cocok untuk aktivitas ini'),
                                     ),
                                   );
@@ -164,7 +180,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                               )
                             : Center(
                                 child: Text(
-                                  'Tidak ada aktivitas khusus untuk hari ini',
+                                  'Tidak ada aktivitas khusus yang tercatat untuk hari ini.',
+                                  textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: Colors.grey[600],
                                   ),
@@ -181,18 +198,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
     );
   }
-  
+
+  // Fungsi yang diperbaiki untuk mendapatkan Weton
   String _getWetonForDate(DateTime date) {
-    // Seharusnya implementasi perhitungan weton yang sebenarnya
-    // Ini hanya contoh sederhana
-    final List<String> days = [
-      'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu','Minggu', 
-    ];
-    final List<String> pasaran = ['Kliwon', 'Legi', 'Pahing', 'Pon', 'Wage'];
-    
-    final int dayIndex = date.weekday % 7;
-    final int pasaranIndex = date.day % 5;
-    
-    return '${days[dayIndex == 0 ? 6 : dayIndex - 1]} ${pasaran[pasaranIndex]}';
+    // Menggunakan WetonCalculator yang sudah ada
+    final WetonModel weton = WetonCalculator.calculateWeton(date);
+    return '${weton.dayName} ${weton.pasaranName} (Neptu: ${weton.totalNeptu})';
   }
 }
