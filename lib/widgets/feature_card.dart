@@ -1,3 +1,4 @@
+// lib/widgets/feature_card.dart
 import 'package:flutter/material.dart';
 
 class FeatureCard extends StatelessWidget {
@@ -27,12 +28,13 @@ class FeatureCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+          padding: const EdgeInsets.fromLTRB(16.0, 4.0, 16.0, 4.0), // Sedikit kurangi padding atas/bawah jika perlu
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center, // Pusatkan konten secara vertikal
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), // Kurangi padding jika perlu
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
@@ -43,21 +45,25 @@ class FeatureCard extends StatelessWidget {
                   size: 24,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 2), // << DIUBAH dari 12 ke 8
               Text(
                 title,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 12, // Anda bisa coba kurangi sedikit jika masih overflow, misal 15
                   fontWeight: FontWeight.w600,
                 ),
+                maxLines: 1, // Pastikan judul tidak terlalu panjang
+                overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2), // << DIUBAH dari 4 ke 2
               Text(
                 description,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 12, // Anda bisa coba kurangi sedikit jika masih overflow, misal 11
                   color: Colors.grey[600],
                 ),
+                maxLines: 1, 
+                overflow: TextOverflow.ellipsis, 
               ),
             ],
           ),

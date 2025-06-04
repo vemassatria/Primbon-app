@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Tambahkan ini
+import 'dart:convert'; // Tambahkan ini
 import '../utils/theme.dart';
 import '../models/weton_model.dart';
 
@@ -10,6 +12,33 @@ class WetonResultCard extends StatelessWidget {
   const WetonResultCard({Key? key, required this.weton, required this.name})
     : super(key: key);
 
+  // Fungsi untuk menyimpan perhitungan
+  Future<void> _saveCalculation(BuildContext context) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final List<String> savedItemsString = prefs.getStringList('savedCalculations') ?? [];
+    
+    final Map<String, dynamic> calculationData = {
+      'type': 'weton',
+      'timestamp': DateTime.now().toIso8601String(),
+      'displayName': '$name - ${weton.dayName} ${weton.pasaranName}',
+      'details': {
+        'name': name,
+        'dayName': weton.dayName,
+        'pasaranName': weton.pasaranName,
+        'totalNeptu': weton.totalNeptu,
+        'traits': weton.traits,
+        // Anda bisa tambahkan detail lain dari weton model jika perlu
+      }
+    };
+    
+    savedItemsString.add(json.encode(calculationData)); // Encode Map ke String JSON
+    await prefs.setStringList('savedCalculations', savedItemsString);
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Hasil perhitungan untuk $name disimpan')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -19,7 +48,7 @@ class WetonResultCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
+            // ... (kode header dan tampilan lainnya tetap sama) ...
             Container(
               width: double.infinity,
               padding: EdgeInsets.symmetric(vertical: 8),
@@ -211,17 +240,13 @@ class WetonResultCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 24),
-
             // Action Buttons
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () {
-                      // TODO: Implement save functionality
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Hasil perhitungan disimpan')),
-                      );
+                      _saveCalculation(context); // Panggil fungsi simpan
                     },
                     icon: Icon(Icons.bookmark_border),
                     label: Text('Simpan'),

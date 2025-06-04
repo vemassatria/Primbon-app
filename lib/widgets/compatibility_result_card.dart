@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Tambahkan ini
+import 'dart:convert'; // Tambahkan ini
 import '../utils/theme.dart';
 import '../models/compatibility_model.dart';
 
@@ -9,6 +11,35 @@ class CompatibilityResultCard extends StatelessWidget {
   const CompatibilityResultCard({Key? key, required this.compatibility})
     : super(key: key);
 
+  Future<void> _saveCalculation(BuildContext context) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final List<String> savedItemsString = prefs.getStringList('savedCalculations') ?? [];
+    
+    final Map<String, dynamic> calculationData = {
+      'type': 'compatibility',
+      'timestamp': DateTime.now().toIso8601String(),
+      'displayName': '${compatibility.person1Name} & ${compatibility.person2Name} - Jodoh',
+      'details': {
+        'person1Name': compatibility.person1Name,
+        'person1Weton': compatibility.person1Weton,
+        'person1Neptu': compatibility.person1Neptu,
+        'person2Name': compatibility.person2Name,
+        'person2Weton': compatibility.person2Weton,
+        'person2Neptu': compatibility.person2Neptu,
+        'totalCompatibility': compatibility.totalCompatibility,
+        'interpretation': compatibility.interpretation,
+        // Tambahkan detail lain jika perlu
+      }
+    };
+    
+    savedItemsString.add(json.encode(calculationData));
+    await prefs.setStringList('savedCalculations', savedItemsString);
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Hasil kecocokan untuk ${compatibility.person1Name} & ${compatibility.person2Name} disimpan')),
+    );
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -18,7 +49,7 @@ class CompatibilityResultCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
+            // ... (kode header dan tampilan lainnya tetap sama) ...
             Center(
               child: Column(
                 children: [
@@ -335,17 +366,13 @@ class CompatibilityResultCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-
             // Action Buttons
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () {
-                      // TODO: Implement save functionality
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Hasil perhitungan disimpan')),
-                      );
+                      _saveCalculation(context); // Panggil fungsi simpan
                     },
                     icon: Icon(Icons.bookmark_border),
                     label: Text('Simpan'),
